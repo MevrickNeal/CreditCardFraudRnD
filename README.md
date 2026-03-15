@@ -33,7 +33,7 @@ The system is built based on the research principles of sub-second inference and
 
 1. **Clone the Repository**:
    ```ps
-   git clone https://github.com/LianMollick/CreditCardFraudRnD.git
+   git clone https://github.com/MevrickNeal/CreditCardFraudRnD.git
    cd CreditCardFraudRnD
    ```
 
