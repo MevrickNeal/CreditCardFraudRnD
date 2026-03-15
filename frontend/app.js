@@ -1,7 +1,7 @@
-// Frontend API Integration and Interactions
-const API_URL = 'http://localhost:8000/api';
 
-// State
+const API_URL = 'http:
+
+
 let networkLatency = [];
 let rocAucHistory = [];
 let chartInstance = null;
@@ -10,24 +10,24 @@ let gaugeVae = null;
 let gaugeEns = null;
 let gaugeRisk = null;
 
-// Initialize components
+
 document.addEventListener('DOMContentLoaded', async () => {
     initGauges();
     await loadProfiles();
     startSimulationFeed();
 
-    // Bind buttons
+    
     document.getElementById('process-btn').addEventListener('click', processManualTransaction);
 });
 
-// Configure and draw radial gauges using Chart.js doughnut
+
 function initGauges() {
     const gaugeConfig = (color, currentVal = 0) => ({
         type: 'doughnut',
         data: {
             datasets: [{
                 data: [currentVal, 100 - currentVal],
-                backgroundColor: [color, 'rgba(226, 232, 240, 0.6)'], // Light slate-200 background
+                backgroundColor: [color, 'rgba(226, 232, 240, 0.6)'], 
                 borderWidth: 0,
                 cutout: '80%',
                 circumference: 270,
@@ -42,9 +42,9 @@ function initGauges() {
         }
     });
 
-    gaugeRisk = new Chart(document.getElementById('gauge-risk').getContext('2d'), gaugeConfig('#ef4444')); // Red
-    gaugeVae = new Chart(document.getElementById('gauge-vae').getContext('2d'), gaugeConfig('#9333ea')); // Purple
-    gaugeEns = new Chart(document.getElementById('gauge-ensemble').getContext('2d'), gaugeConfig('#2563eb')); // Blue
+    gaugeRisk = new Chart(document.getElementById('gauge-risk').getContext('2d'), gaugeConfig('#ef4444')); 
+    gaugeVae = new Chart(document.getElementById('gauge-vae').getContext('2d'), gaugeConfig('#9333ea')); 
+    gaugeEns = new Chart(document.getElementById('gauge-ensemble').getContext('2d'), gaugeConfig('#2563eb')); 
 }
 
 function updateGauge(chart, value, color) {
@@ -78,7 +78,7 @@ async function processManualTransaction() {
     }
 
     const btn = document.getElementById('process-btn');
-    btn.innerHTML = `<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Analyzing...`;
+    btn.innerHTML = `<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline-block" xmlns="http:
     btn.disabled = true;
 
     const startTime = performance.now();
@@ -107,11 +107,11 @@ async function processManualTransaction() {
 }
 
 function updateDashboard(data, latency) {
-    // Top Bar Metrics
+    
     document.getElementById('latency-metric').innerText = `${Math.round(latency)} ms`;
     document.getElementById('auc-metric').innerText = data.system_roc_auc.toFixed(3);
 
-    // Gauges
+    
     const totalRisk = Math.round(data.risk_score * 100);
     const vaeScore = Math.round(data.vae_anomaly * 100);
     const ensScore = Math.round(data.ensemble_prob * 100);
@@ -120,20 +120,20 @@ function updateDashboard(data, latency) {
     document.getElementById('score-vae').innerText = vaeScore;
     document.getElementById('score-ens').innerText = ensScore;
 
-    // Color coding risk
+    
     const riskColor = totalRisk > 60 ? '#ef4444' : (totalRisk > 30 ? '#f59e0b' : '#10b981');
     document.getElementById('score-total').style.color = riskColor;
     updateGauge(gaugeRisk, totalRisk, riskColor);
     updateGauge(gaugeVae, vaeScore);
     updateGauge(gaugeEns, ensScore);
 
-    // SHAP Chart
+    
     renderShapChart(data.shap_values, data.transaction_id);
 
-    // Add to Feed
+    
     prependToFeed(data);
 
-    // Show Banner
+    
     showBanner(data);
 }
 
@@ -164,7 +164,7 @@ function renderShapChart(shapData, txId) {
             }]
         },
         options: {
-            indexAxis: 'y', // Horizontal bar chart
+            indexAxis: 'y', 
             responsive: true,
             maintainAspectRatio: false,
             scales: {
@@ -187,16 +187,16 @@ function renderShapChart(shapData, txId) {
 function prependToFeed(tx) {
     const feed = document.getElementById('transaction-feed');
 
-    // Remove placeholder if present
+    
     if (feed.children.length > 0 && feed.children[0].classList.contains('text-center')) {
         feed.innerHTML = '';
     }
 
     const isFraud = tx.status === 'Declined';
 
-    // Create SVG icons
-    const iconSuccess = `<svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>`;
-    const iconDanger = `<svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>`;
+    
+    const iconSuccess = `<svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http:
+    const iconDanger = `<svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http:
 
     const icon = isFraud ? iconDanger : iconSuccess;
     const bgClass = isFraud ? 'bg-red-50 border-red-200' : 'bg-white border-slate-200 shadow-sm';
@@ -231,8 +231,8 @@ function showBanner(data) {
 
     banner.classList.remove('hidden');
 
-    const iconWarning = `<svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>`;
-    const iconCheck = `<svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`;
+    const iconWarning = `<svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http:
+    const iconCheck = `<svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http:
 
     if (data.status === 'Declined') {
         banner.className = 'glass-panel p-6 border-l-4 border-l-red-500 rounded-r-2xl mt-6 bg-red-50/80 fade-in shadow-lg';
@@ -253,7 +253,7 @@ function showBanner(data) {
     }
 }
 
-// Background simulation just to make the dashboard look alive
+
 function startSimulationFeed() {
     setInterval(() => {
         const feed = document.getElementById('transaction-feed');
@@ -261,7 +261,7 @@ function startSimulationFeed() {
             feed.innerHTML = '';
         }
 
-        // Randomly generate benign background noise
+        
         const txId = `TXN-${Math.floor(Math.random() * 90000) + 10000}`;
         const amount = Math.random() * 50 + 5;
 

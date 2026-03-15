@@ -17,13 +17,11 @@ class IEEECISDataPipeline:
         train_transaction = pd.read_csv(os.path.join(self.data_dir, 'train_transaction.csv'))
         train_identity = pd.read_csv(os.path.join(self.data_dir, 'train_identity.csv'))
         
-        # Merge on TransactionID
         df = pd.merge(train_transaction, train_identity, on='TransactionID', how='left')
         
-        # Take a stratified sample to make training locally feasible
         if sample_frac < 1.0:
             print(f"Sampling {sample_frac*100}% of data to reduce memory load...")
-            # Use simple sample instead of groupby.apply which drops the group key in some pandas versions
+
             df = df.sample(frac=sample_frac, random_state=42)
         
         return df
@@ -34,15 +32,12 @@ class IEEECISDataPipeline:
         print(f"Columns in dataset: {[c for c in df.columns if 'fraud' in c.lower()]}")
         target_col = 'isFraud' if 'isFraud' in df.columns else 'isFraud'
         
-        # Separate features and target
         y = df[target_col].values
         X = df.drop([target_col, 'TransactionID'], axis=1)
         
-        # Identify categorical and numerical columns
         categorical_cols = X.select_dtypes(include=['object']).columns
         numerical_cols = X.select_dtypes(exclude=['object']).columns
         
-        # Fill missing values
         X[numerical_cols] = X[numerical_cols].fillna(-999)
         
         for col in categorical_cols:
@@ -51,7 +46,6 @@ class IEEECISDataPipeline:
             X[col] = le.fit_transform(X[col].astype(str))
             self.label_encoders[col] = le
             
-        # Scale numerical features
         X[numerical_cols] = self.scaler.fit_transform(X[numerical_cols])
         
         print(f"Final shape of X: {X.shape}")
@@ -72,14 +66,12 @@ if __name__ == "__main__":
     
     pipeline = IEEECISDataPipeline(DATA_DIR)
     
-    # Using 10% of the data to keep it fast for local CPU training as requested in the plan
     df = pipeline.load_data(sample_frac=0.1) 
     
     X, y = pipeline.preprocess(df)
     
     pipeline.save_artifacts(OUTPUT_DIR)
     
-    # Save the processed numpy arrays mapped cleanly to disk
     os.makedirs('data', exist_ok=True)
     np.save('data/X_processed.npy', X)
     np.save('data/y_processed.npy', y)

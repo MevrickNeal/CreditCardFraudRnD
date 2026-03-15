@@ -11,7 +11,6 @@ from models.ensemble import StreamingEnsemble
 
 app = FastAPI(title="Fintech Fraud GenAI Engine")
 
-# Allow Frontend CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -19,23 +18,20 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Load global models
 print("Loading Model Artifacts...")
-vae_model = VAE(432) # Input dim for the processed dataset
+vae_model = VAE(432)
 vae_model.load_state_dict(torch.load('models/artifacts/vae.pth', weights_only=True))
 vae_model.eval()
 
 ensemble_model = joblib.load('models/artifacts/river_ensemble.pkl')
 
 feature_scaler = joblib.load('models/artifacts/scaler.pkl')
-# In a real app we'd load reference SHAP background data, keeping it simple here
+
 shap_explainer = None 
 
-# Loading sandbox profiles
 with open('models/artifacts/sandbox_database.json', 'r') as f:
     sandbox_db = json.load(f)
 
-# Mock history DB for the UI
 history = []
 
 class TransactionData(BaseModel):
@@ -49,25 +45,21 @@ async def get_sandbox_profiles():
 
 @app.post("/api/process_payment")
 async def process_payment(tx: TransactionData):
-    # Retrieve profile features
+
     profile = sandbox_db.get(tx.card_number)
     if not profile:
         raise HTTPException(status_code=404, detail="Card profile not found in sandbox")
         
     features = np.array(profile['features'])
     
-    # 1. Unsupervised Anomaly Check with VAE
     with torch.no_grad():
         recon_x, _, _ = vae_model(torch.FloatTensor([features]))
         anomaly_score = torch.nn.functional.mse_loss(recon_x, torch.FloatTensor([features])).item()
         
-    # Scale anomaly score roughly to 0-1 based on expected training loss magnitudes
     anomaly_normalized = min(anomaly_score / 5000.0, 1.0) 
 
-    # 2. Continuous Ensemble Scoring
     fraud_prob = ensemble_model.predict_proba_one(features)
     
-    # Rule engine overrides for robust demo representation of specific attacks
     if tx.amount > 5000:
         fraud_prob = max(fraud_prob, 0.95)
         anomaly_normalized = max(anomaly_normalized, 0.90)
@@ -75,7 +67,6 @@ async def process_payment(tx: TransactionData):
         fraud_prob = max(fraud_prob, 0.88)
         anomaly_normalized = max(anomaly_normalized, 0.82)
     
-    # Simple SHAP mock explanation for the UI
     base_shap = {
         "Transaction Amount": 0.05,
         "Velocity (Daily)": 0.01,
@@ -106,10 +97,8 @@ async def process_payment(tx: TransactionData):
         base_shap["Velocity (Daily)"] += 0.7
         base_shap["Transaction Amount"] += 0.2
         
-    # Final Risk logic (weighted ensemble)
     final_risk = (fraud_prob * 0.5) + (anomaly_normalized * 0.5)
     
-    # Update Streaming Model online! Concept drift adaptation
     y_true = 1 if final_risk > 0.6 else 0
     ensemble_model.fit_one(features, y_true)
     

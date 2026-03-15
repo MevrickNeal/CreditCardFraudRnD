@@ -10,7 +10,6 @@ class VAE(nn.Module):
     def __init__(self, input_dim, latent_dim=64):
         super(VAE, self).__init__()
         
-        # Encoder
         self.encoder = nn.Sequential(
             nn.Linear(input_dim, 256),
             nn.ReLU(),
@@ -21,7 +20,6 @@ class VAE(nn.Module):
         self.fc_mu = nn.Linear(128, latent_dim)
         self.fc_logvar = nn.Linear(128, latent_dim)
         
-        # Decoder
         self.decoder = nn.Sequential(
             nn.Linear(latent_dim, 128),
             nn.ReLU(),
@@ -78,7 +76,7 @@ class Critic(nn.Module):
             nn.Linear(512, 256),
             nn.LeakyReLU(0.2),
             nn.Dropout(0.3),
-            nn.Linear(256, 1) # Output a score, not a probability
+            nn.Linear(256, 1)
         )
         
     def forward(self, features, labels):

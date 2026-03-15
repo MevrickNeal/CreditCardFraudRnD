@@ -6,7 +6,6 @@ print("Loading data...")
 X = np.load('data/X_processed.npy')
 y = np.load('data/y_processed.npy')
 
-# Get some indices mapping to different real data points
 idx_normal = np.where(y == 0)[0][0]
 idx_fraud = np.where(y == 1)[0][0]
 idx_fraud_2 = np.where(y == 1)[0][10]

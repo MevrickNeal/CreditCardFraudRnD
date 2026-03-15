@@ -25,7 +25,6 @@ def train_vae(X_train, epochs=20, batch_size=256, lr=1e-3):
             optimizer.zero_grad()
             recon_x, mu, logvar = vae(x)
             
-            # Reconstruction loss + KL Divergence
             recon_loss = nn.MSELoss(reduction='sum')(recon_x, x)
             kl_loss = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
             loss = recon_loss + kl_loss
@@ -58,22 +57,20 @@ def train_wgan(X_train_fraud, epochs=50, batch_size=64, lr=1e-4):
             real_data = batch[0]
             current_batch_size = real_data.size(0)
             
-            # Train Critic
-            for _ in range(5): # Train critic more often
+            for _ in range(5):
                 opt_C.zero_grad()
                 noise = torch.randn(current_batch_size, noise_dim)
-                labels = torch.ones(current_batch_size, 1) # Conditional label 1 for Fraud
+                labels = torch.ones(current_batch_size, 1)
                 
                 fake_data = generator(noise, labels)
                 
                 critic_real = critic(real_data, labels).mean()
                 critic_fake = critic(fake_data.detach(), labels).mean()
                 
-                loss_C = -(critic_real - critic_fake) # W-loss simplified
+                loss_C = -(critic_real - critic_fake)
                 loss_C.backward()
                 opt_C.step()
                 
-            # Train Generator
             opt_G.zero_grad()
             noise = torch.randn(current_batch_size, noise_dim)
             fake_data = generator(noise, labels)
@@ -90,7 +87,6 @@ def initialize_ensemble(X_train, y_train):
     print("Initializing River continuous learning ensemble...")
     ensemble = StreamingEnsemble()
     
-    # Pre-train ensemble on existing data stream
     for i in range(len(X_train)):
         ensemble.fit_one(X_train[i], y_train[i])
         
@@ -119,21 +115,17 @@ if __name__ == '__main__':
     
     os.makedirs('models/artifacts', exist_ok=True)
     
-    # 1. Train VAE on Legitimate Data (Unsupervised Anomaly Modeling)
     X_legit = X[y == 0]
-    vae_model = train_vae(X_legit, epochs=10) # Keeping epochs low for speed
+    vae_model = train_vae(X_legit, epochs=10)
     torch.save(vae_model.state_dict(), 'models/artifacts/vae.pth')
     
-    # 2. Train WGAN on Fraud Data (Adversarial Generator)
     X_fraud = X[y == 1]
     g_model = train_wgan(X_fraud, epochs=20) 
     torch.save(g_model.state_dict(), 'models/artifacts/generator.pth')
     
-    # 3. Train River Continuous Learner
     ensemble = initialize_ensemble(X, y)
     joblib.dump(ensemble, 'models/artifacts/river_ensemble.pkl')
     
-    # 4. Extract typical Sandbox vectors for backend
     map_sandbox_profiles(X, y)
     
     print("\nTraining Engine Complete! All intelligent assets saved.")

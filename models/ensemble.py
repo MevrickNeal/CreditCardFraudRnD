@@ -18,7 +18,6 @@ class StreamingEnsemble:
         X = np.array([x_array])
         Y = np.array([y])
         
-        # Keep track of history to compute ROC AUC
         if self.samples_seen > 0 and len(set(self.y_true_history)) > 1:
             try:
                 y_pred = self.model.predict_proba(X)[0][1]
@@ -30,7 +29,6 @@ class StreamingEnsemble:
             self.y_true_history.append(y)
             self.y_pred_history.append(0.5)
             
-        # partial_fit requires knowing all possible classes initially
         self.model.partial_fit(X, Y, classes=np.array([0, 1]))
         self.samples_seen += 1
         
@@ -42,14 +40,14 @@ class StreamingEnsemble:
         X = np.array([x_array])
         try:
             probas = self.model.predict_proba(X)
-            return probas[0][1] # Probability of class 1 (fraud)
+            return probas[0][1]
         except:
             return 0.0
             
     def get_metric(self):
         """ Returns the current ROC AUC based on recent history """
         if len(set(self.y_true_history)) > 1:
-            # Only calculate on the last 1000 samples to emulate streaming window
+
             y_t = self.y_true_history[-1000:]
             y_p = self.y_pred_history[-1000:]
             if len(set(y_t)) > 1:
