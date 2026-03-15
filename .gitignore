@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.env
+.venv
+env/
+venv/
+ENV/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Data & Models (Heavy artifacts)
+data/*.npy
+models/artifacts/*.pth
+models/artifacts/*.pkl
+*.csv
+
+# IDE
+.vscode/
+.idea/
