@@ -29,7 +29,23 @@ The system is built based on the research principles of sub-second inference and
 - Python 3.9+
 - Git
 
-### Installation
+### 🚀 One-Click Setup and Execution (Windows)
+
+For a seamless experience, use the provided clickable batch files:
+
+1.  **Install/Setup**:
+    - Double-click `setup.bat`.
+    - This will create a virtual environment and install all required libraries automatically.
+2.  **Run the Project**:
+    - Double-click `run.bat`.
+    - This will start the Backend server in a new window and automatically open the Dashboard in your default browser.
+3.  **Reset Data (Optional)**:
+    - Double-click `reset_data.bat` if you wish to re-generate the sandbox card profiles.
+
+---
+
+### Alternative: Manual Terminal Installation
+*Use these steps if you prefer the terminal or are on a non-Windows OS.*
 
 1. **Clone the Repository**:
    ```ps
@@ -42,26 +58,9 @@ The system is built based on the research principles of sub-second inference and
    pip install -r requirements.txt
    ```
 
-3. **Data Preparation**:
-   Place the IEEE-CIS Fraud Detection dataset (`train_transaction.csv` and `train_identity.csv`) in the root directory or a directory of your choice.
-
-### Running the System
-
-1. **Initial Training**:
-   Run the data pipeline and training engine to build the initial models and sandbox profiles.
-   ```ps
-   python data_pipeline.py
-   python train_engine.py
-   python generate_profiles.py
-   ```
-
-2. **Start the Backend Server**:
-   ```ps
-   python -m uvicorn backend.app:app --host 0.0.0.0 --port 8000
-   ```
-
-3. **Open the Dashboard**:
-   Simply open `frontend/index.html` in any modern web browser to start testing the real-time inference engine.
+3. **Running the System**:
+   - **Start Backend**: `python -m uvicorn backend.app:app --host 0.0.0.0 --port 8000`
+   - **Open Dashboard**: Open `frontend/index.html` in your browser.
 
 ---
 
