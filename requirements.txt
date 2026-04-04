@@ -1,0 +1,10 @@
+torch
+pandas
+numpy
+scikit-learn
+joblib
+fastapi
+uvicorn
+pydantic
+shap
+matplotlib
