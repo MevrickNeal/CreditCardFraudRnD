@@ -3,7 +3,22 @@
 ## Overview
 This repository contains a state-of-the-art, real-time fraud detection engine designed for modern fintech environments. It implements a hybrid architecture combining unsupervised deep learning, adversarial generation, and continuous streaming machine learning to protect against sophisticated fraud vectors like synthetic identities, VPN-based anomalies, and velocity attacks.
 
-The system is built based on the research principles of sub-second inference and explainable AI (XAI) to ensure regulatory compliance and high precision.
+The system is built based on the research principles of sub-second inference, explainable AI (XAI), and a robust, automated risk-tiering methodology to ensure regulatory compliance and operational precision.
+
+---
+
+## 🚦 3-Tier Risk Decision Engine
+Aligned with the core research proposal, the inference engine maps the VAE-GAT reconstruction thresholds and ensemble probabilities into three distinct operational tiers:
+
+- **Tier 1: Critical Risk [🚨 Auto-Decline]**
+  - **Condition:** Ensemble Probability > 40% OR VAE Anomaly > 40% (Normative p95 breach).
+  - **Action:** Transaction instantly declined. Flags standard fraud, synthetic identities, velocity attacks, and VPN anomalies.
+- **Tier 2: Moderate Risk / High Value [📞 Bank Verification Required]**
+  - **Condition:** Risk Score between 15% and 40% **OR** Transaction Amount > $5,000.
+  - **Action:** Transaction suspended pending manual cardholder verification call, preventing large fund extraction.
+- **Tier 3: Normal Behavior [✅ Auto-Approve]**
+  - **Condition:** Baseline baseline Risk Score < 15% and Amount < $5,000.
+  - **Action:** Seamlessly approved to ensure low false-positive friction.
 
 ---
 
@@ -89,8 +104,8 @@ For a seamless experience, use the provided clickable batch files:
    ```
 
 3. **Running the System**:
-   - **Start Backend**: `python -m uvicorn backend.app:app --host 0.0.0.0 --port 8000`
-   - **Open Dashboard**: Open `frontend/index.html` in your browser.
+   - **Start Server**: `python -m uvicorn backend.app:app --host 0.0.0.0 --port 8000`
+   - **Open Dashboard**: Navigate to `http://localhost:8000` in your web browser. (The backend will automatically serve the frontend).
 
 ---
 
