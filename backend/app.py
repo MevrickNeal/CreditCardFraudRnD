@@ -1,5 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 import torch
 import numpy as np
@@ -137,3 +139,13 @@ async def process_payment(tx: TransactionData):
 @app.get("/api/history")
 async def get_history():
     return history[-10:]
+
+# Serve frontend dashboard
+import os
+frontend_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'frontend')
+if os.path.exists(frontend_path):
+    app.mount("/dashboard", StaticFiles(directory=frontend_path, html=True), name="frontend")
+
+@app.get("/")
+async def root():
+    return RedirectResponse(url="/dashboard/index.html")

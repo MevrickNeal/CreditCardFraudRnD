@@ -193,14 +193,17 @@ function prependToFeed(tx) {
     }
 
     const isFraud = tx.status === 'Declined';
+    const isVerify = tx.status === 'Bank Verification Required';
 
     
     const iconSuccess = `<svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`;
     const iconDanger = `<svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>`;
+    const iconVerify = `<svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>`;
 
-    const icon = isFraud ? iconDanger : iconSuccess;
-    const bgClass = isFraud ? 'bg-red-50 border-red-200' : 'bg-white border-slate-200 shadow-sm';
-    const iconWrapperClass = isFraud ? 'bg-red-100 border-red-200' : 'bg-emerald-100 border-emerald-200';
+    const icon = isFraud ? iconDanger : (isVerify ? iconVerify : iconSuccess);
+    const bgClass = isFraud ? 'bg-red-50 border-red-200' : (isVerify ? 'bg-amber-50 border-amber-200' : 'bg-white border-slate-200 shadow-sm');
+    const iconWrapperClass = isFraud ? 'bg-red-100 border-red-200' : (isVerify ? 'bg-amber-100 border-amber-200' : 'bg-emerald-100 border-emerald-200');
+    const statusColor = isFraud ? 'text-red-500' : (isVerify ? 'text-amber-600' : 'text-emerald-500');
 
     const el = document.createElement('div');
     el.className = `p-3 rounded-xl border ${bgClass} flex justify-between items-center fade-in`;
@@ -217,7 +220,7 @@ function prependToFeed(tx) {
         </div>
         <div class="text-right">
             <p class="text-sm font-bold text-slate-800">$${parseFloat(tx.amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-            <p class="text-[10px] font-bold uppercase tracking-wide ${isFraud ? 'text-red-500' : 'text-emerald-500'}">${tx.status}</p>
+            <p class="text-[10px] font-bold uppercase tracking-wide ${statusColor}">${tx.status}</p>
         </div>
     `;
 
@@ -233,15 +236,26 @@ function showBanner(data) {
 
     const iconWarning = `<svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>`;
     const iconCheck = `<svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`;
+    const iconPhone = `<svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>`;
+
+    const reason = data.reason || '';
 
     if (data.status === 'Declined') {
         banner.className = 'glass-panel p-6 border-l-4 border-l-red-500 rounded-r-2xl mt-6 bg-red-50/80 fade-in shadow-lg';
         bg.className = 'rounded-2xl p-3 mr-4 bg-red-500 alert-pulse shadow-md';
         bg.innerHTML = iconWarning;
-        document.getElementById('banner-title').innerText = 'Transaction Declined (High Risk)';
-        document.getElementById('banner-desc').innerText = `Anomaly detected (Score: ${(data.risk_score * 100).toFixed(1)}%). The Continuous Ensembling model blocked this transaction.`;
+        document.getElementById('banner-title').innerText = 'Transaction Declined - Fraud Detected';
+        document.getElementById('banner-desc').innerText = `${reason}. Risk Score: ${(data.risk_score * 100).toFixed(1)}%. The AI hybrid model has blocked this transaction.`;
         document.getElementById('banner-title').className = 'text-lg font-bold text-red-700';
         document.getElementById('banner-desc').className = 'text-sm font-medium text-red-600/90 leading-relaxed';
+    } else if (data.status === 'Bank Verification Required') {
+        banner.className = 'glass-panel p-6 border-l-4 border-l-amber-500 rounded-r-2xl mt-6 bg-amber-50/80 fade-in shadow-lg';
+        bg.className = 'rounded-2xl p-3 mr-4 bg-amber-500 shadow-md';
+        bg.innerHTML = iconPhone;
+        document.getElementById('banner-title').innerText = 'Bank Verification Required';
+        document.getElementById('banner-desc').innerText = `${reason}. Issuer bank verification call initiated. Transaction held pending cardholder confirmation.`;
+        document.getElementById('banner-title').className = 'text-lg font-bold text-amber-700';
+        document.getElementById('banner-desc').className = 'text-sm font-medium text-amber-600/90 leading-relaxed';
     } else {
         banner.className = 'glass-panel p-6 border-l-4 border-l-emerald-500 rounded-r-2xl mt-6 bg-emerald-50/80 fade-in shadow-lg';
         bg.className = 'rounded-2xl p-3 mr-4 bg-emerald-500 shadow-md';
