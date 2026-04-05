@@ -100,8 +100,22 @@ async def process_payment(tx: TransactionData):
     if total_shap > 0:
         base_shap = {k: (v/total_shap) * final_risk for k, v in base_shap.items()}
     
+    # ------- 3-Tier Risk Decision Engine (per Research Proposal §3.5) -------
+    # Tier 1 - CRITICAL (risk > 40%): Automated block — fraud pattern confirmed
+    # Tier 2 - MODERATE (risk 15-40%) OR (normal card + amount > $5000): Bank verification
+    # Tier 3 - NORMAL (risk < 15%): Immediate authorization
+    if final_risk > 0.40:
+        status = "Declined"
+        reason = "Fraud Pattern Detected"
+    elif final_risk > 0.15 or tx.amount > 5000:
+        status = "Bank Verification Required"
+        reason = "High Amount - Issuer Verification Call" if tx.amount > 5000 else "Elevated Risk - Additional Authentication"
+    else:
+        status = "Approved"
+        reason = "Transaction Authorized"
+    
     # Online learning feedback
-    y_true = 1 if final_risk > 0.5 else 0
+    y_true = 1 if final_risk > 0.40 else 0
     ensemble_model.fit_one(features_scaled, y_true)
     
     result = {
@@ -112,7 +126,8 @@ async def process_payment(tx: TransactionData):
         "vae_anomaly": anomaly_normalized,
         "ensemble_prob": fraud_prob,
         "shap_values": base_shap,
-        "status": "Declined" if final_risk > 0.5 else "Approved",
+        "status": status,
+        "reason": reason,
         "system_roc_auc": ensemble_model.get_metric()
     }
     
