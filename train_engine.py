@@ -143,6 +143,5 @@ if __name__ == '__main__':
     ensemble = initialize_ensemble(X_augmented, y_augmented)
     joblib.dump(ensemble, 'models/artifacts/river_ensemble.pkl')
     
-    map_sandbox_profiles(X, y)
-    
+
     print("\nTraining Engine Complete! All intelligent assets saved.")

@@ -56,12 +56,14 @@ async def process_payment(tx: TransactionData):
         recon_x, _, _ = vae_model(torch.FloatTensor([features]))
         anomaly_score = torch.nn.functional.mse_loss(recon_x, torch.FloatTensor([features])).item()
         
-    anomaly_normalized = min(anomaly_score / 5000.0, 1.0) 
+    # Normalize against the expected Mean Squared Error bound (~10-15 per vector)
+    anomaly_normalized = min(anomaly_score / 15.0, 1.0) 
 
     fraud_prob = ensemble_model.predict_proba_one(features)
     
-    # True risk based purely on AI models
-    final_risk = (fraud_prob * 0.5) + (anomaly_normalized * 0.5)
+    # True risk based purely on AI models. 
+    # Use max() so if either model independently triggers high confidence, it flags.
+    final_risk = max(float(fraud_prob), float(anomaly_normalized))
     
     # Real mathematical Explainability (XAI) using linear coefficients
     try:
