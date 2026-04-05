@@ -14,8 +14,9 @@ idx_normal_2 = np.where(y == 0)[0][100]
 
 # Inject mathematical anomalies so the real AI catches them organically
 feat_standard = X[idx_fraud].copy()
-feat_standard[5:40] += 12.0  # Strong deviation across early features
-feat_standard[200:230] *= -5.0
+feat_standard[5:50] += 15.0  # Strong deviation across early features
+feat_standard[150:200] *= -6.0  # Flip sign of network features
+feat_standard[400:420] += 20.0  # Spike late features
 
 feat_vpn = X[idx_fraud_2].copy()
 feat_vpn[50:100] *= 20.0  # Massive network feature spike

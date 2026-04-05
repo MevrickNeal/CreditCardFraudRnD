@@ -52,7 +52,13 @@ async def process_payment(tx: TransactionData):
     if not profile:
         raise HTTPException(status_code=404, detail="Card profile not found in sandbox")
         
-    features = np.array(profile['features'])
+    features = np.array(profile['features']).copy()
+    
+    # ------- Inject transaction amount into feature vector -------
+    # Feature[2] = standardized amount proxy (training range: 0-4 for normal transactions)
+    # Log-scale the submitted amount: $100→3.0, $1000→4.2, $10000→5.6, $50000→6.6
+    # Values above 4.0 are out-of-distribution for what the VAE learned as "normal"
+    features[2] = np.log1p(tx.amount) / np.log1p(500) * 4.0
     
     # ------- VAE-GAT Anomaly Score -------
     with torch.no_grad():
