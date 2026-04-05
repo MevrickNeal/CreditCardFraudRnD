@@ -10,19 +10,19 @@ The system is built based on the research principles of sub-second inference, ex
 ## 🚦 3-Tier Risk Decision Engine
 Aligned with the core research proposal, the inference engine maps the VAE-GAT reconstruction thresholds and ensemble probabilities into three distinct operational tiers:
 
-- **Tier 1: Critical Risk [🚨 Auto-Decline]**
+- **Tier 1: Critical Risk [Auto-Decline]**
   - **Condition:** Ensemble Probability > 40% OR VAE Anomaly > 40% (Normative p95 breach).
   - **Action:** Transaction instantly declined. Flags standard fraud, synthetic identities, velocity attacks, and VPN anomalies.
-- **Tier 2: Moderate Risk / High Value [📞 Bank Verification Required]**
+- **Tier 2: Moderate Risk / High Value [Bank Verification Required]**
   - **Condition:** Risk Score between 15% and 40% **OR** Transaction Amount > $5,000.
   - **Action:** Transaction suspended pending manual cardholder verification call, preventing large fund extraction.
-- **Tier 3: Normal Behavior [✅ Auto-Approve]**
+- **Tier 3: Normal Behavior [Auto-Approve]**
   - **Condition:** Baseline baseline Risk Score < 15% and Amount < $5,000.
   - **Action:** Seamlessly approved to ensure low false-positive friction.
 
 ---
 
-## 🏗️ Core Architecture
+## Core Architecture
 
 ```mermaid
 graph TD
@@ -68,13 +68,13 @@ graph TD
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 - Python 3.9+
 - Git
 
-### 🚀 One-Click Setup and Execution (Windows)
+### One-Click Setup and Execution (Windows)
 
 For a seamless experience, use the provided clickable batch files:
 
@@ -109,7 +109,7 @@ For a seamless experience, use the provided clickable batch files:
 
 ---
 
-## 📂 Project Structure
+##  Project Structure
 - `models/`: PyTorch definitions and trained artifacts.
 - `backend/`: FastAPI application and inference logic.
 - `frontend/`: Real-time dashboard (HTML/JS).
@@ -117,7 +117,7 @@ For a seamless experience, use the provided clickable batch files:
 - `train_engine.py`: Unified training implementation for GenAI & Ensemble models.
 - `generate_profiles.py`: Simulation logic for various attack vectors (VPN, Synthetic, etc.).
 
-## 🛡️ Target Threats
+##  Target Threats
 - **Synthetic Identity Fraud**: Detection via VAE + WGAN-GP modeling.
 - **Account Takeover (ATO)**: Identified via IP/Device fingerprint anomalies.
 - **Velocity Attacks**: Blocked via streaming real-time feature engineering.
