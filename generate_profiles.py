@@ -14,17 +14,22 @@ idx_normal_2 = np.where(y == 0)[0][100]
 
 # Inject mathematical anomalies so the real AI catches them organically
 feat_standard = X[idx_fraud].copy()
-feat_standard[10:30] += 8.0 
+feat_standard[5:40] += 12.0  # Strong deviation across early features
+feat_standard[200:230] *= -5.0
 
 feat_vpn = X[idx_fraud_2].copy()
-feat_vpn[50:80] *= 15.0
+feat_vpn[50:100] *= 20.0  # Massive network feature spike
+feat_vpn[150:180] -= 15.0
 
 feat_synthetic = X[idx_fraud_3].copy()
-feat_synthetic[100:150] -= 10.0
+feat_synthetic[0:60] += 20.0  # Broad identity anomaly
+feat_synthetic[100:170] -= 18.0
+feat_synthetic[280:360] *= -10.0
 
 feat_velocity = X[idx_normal_2].copy()
-feat_velocity[2] += 35.0  # Massive transaction amount
-feat_velocity[300:330] += 12.0
+feat_velocity[2] += 60.0  # Massive transaction amount
+feat_velocity[5:55] += 18.0  # Rapid-fire pattern signatures
+feat_velocity[280:350] += 20.0
 
 db = {
     '4000123456789010': {'features': X[idx_normal].tolist(), 'type': 'Normal'},

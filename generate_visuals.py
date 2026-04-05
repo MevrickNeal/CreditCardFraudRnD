@@ -72,12 +72,14 @@ def generate_visuals():
         ensemble = joblib.load(os.path.join(model_dir, "river_ensemble.pkl"))
 
         # Take last 5000 items as hold-out test set
+        scaler = joblib.load(os.path.join(model_dir, "scaler.pkl"))
         X_test = X[-5000:]
         y_test = y[-5000:]
+        X_test_scaled = scaler.transform(X_test)
         y_pred = []
         y_probs = []
-        for i in range(len(X_test)):
-            prob = ensemble.predict_proba_one(X_test[i])
+        for i in range(len(X_test_scaled)):
+            prob = ensemble.predict_proba_one(X_test_scaled[i])
             y_probs.append(prob)
             y_pred.append(1 if prob > 0.5 else 0)
         

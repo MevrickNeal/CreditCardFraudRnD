@@ -93,36 +93,57 @@ def initialize_ensemble(X_train, y_train):
     print(f"Ensemble pre-trained on {ensemble.samples_seen} transactions. Current ROC-AUC: {ensemble.get_metric():.4f}")
     return ensemble
 
-def map_sandbox_profiles(X, y):
-    """ Save a normal and a fraud profile vector manually to test inference """
-    idx_normal = np.where(y == 0)[0][0]
-    idx_fraud = np.where(y == 1)[0][0]
+def compute_vae_threshold(vae_model, X_legit):
+    """Compute VAE reconstruction error statistics on legitimate data for calibration."""
+    print("Computing VAE anomaly threshold from legitimate transactions...")
+    vae_model.eval()
+    mse_scores = []
+    with torch.no_grad():
+        # Sample up to 5000 legitimate transactions for speed
+        sample_idx = np.random.choice(len(X_legit), min(5000, len(X_legit)), replace=False)
+        for idx in sample_idx:
+            x = torch.FloatTensor([X_legit[idx]])
+            recon, _, _ = vae_model(x)
+            mse = torch.nn.functional.mse_loss(recon, x).item()
+            mse_scores.append(mse)
     
-    db = {
-        '4000123456789010': {'features': X[idx_normal].tolist(), 'type': 'Normal'},
-        '5000987654321098': {'features': X[idx_fraud].tolist(), 'type': 'Fraud'}
+    mse_scores = np.array(mse_scores)
+    stats = {
+        'mean': float(np.mean(mse_scores)),
+        'std': float(np.std(mse_scores)),
+        'p95': float(np.percentile(mse_scores, 95)),
+        'p99': float(np.percentile(mse_scores, 99)),
+        'max': float(np.max(mse_scores))
     }
-    
-    import json
-    with open('models/artifacts/sandbox_database.json', 'w') as f:
-        json.dump(db, f, indent=4)
-    print("Sandbox profiles mapped and saved.")
+    print(f"  Normal MSE stats: mean={stats['mean']:.4f}, std={stats['std']:.4f}, p95={stats['p95']:.4f}, p99={stats['p99']:.4f}")
+    return stats
 
 if __name__ == '__main__':
+    from sklearn.preprocessing import StandardScaler
+    
     print("Loading preprocessed feature arrays...")
     X = np.load('data/X_processed.npy')
     y = np.load('data/y_processed.npy')
     
     os.makedirs('models/artifacts', exist_ok=True)
     
+    # ------- Stage 1: Train VAE-GAT on legitimate data -------
     X_legit = X[y == 0]
     vae_model = train_vae(X_legit, epochs=10)
     torch.save(vae_model.state_dict(), 'models/artifacts/vae.pth')
     
+    # Compute VAE threshold calibration from normal data
+    import json
+    vae_stats = compute_vae_threshold(vae_model, X_legit)
+    with open('models/artifacts/vae_threshold.json', 'w') as f:
+        json.dump(vae_stats, f, indent=2)
+    
+    # ------- Stage 2: Train WGAN-GP on fraud data -------
     X_fraud = X[y == 1]
     g_model = train_wgan(X_fraud, epochs=20) 
     torch.save(g_model.state_dict(), 'models/artifacts/generator.pth')
     
+    # ------- Stage 3: Synthesize fraud & augment -------
     print("Generating synthetic fraud samples using WGAN-GP...")
     g_model.eval()
     num_synthetic = 5000
@@ -135,13 +156,20 @@ if __name__ == '__main__':
     X_augmented = np.vstack([X, synthetic_fraud])
     y_augmented = np.concatenate([y, np.ones(num_synthetic)])
     
+    # Shuffle to prevent catastrophic forgetting in streaming SGD
     np.random.seed(42)
     shuffle_idx = np.random.permutation(len(X_augmented))
     X_augmented = X_augmented[shuffle_idx]
     y_augmented = y_augmented[shuffle_idx]
     
-    ensemble = initialize_ensemble(X_augmented, y_augmented)
+    # ------- Stage 4: Scale features for SGD stability -------
+    print("Fitting StandardScaler for ensemble training...")
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X_augmented)
+    joblib.dump(scaler, 'models/artifacts/scaler.pkl')
+    
+    # ------- Stage 5: Train streaming ensemble on scaled data -------
+    ensemble = initialize_ensemble(X_scaled, y_augmented)
     joblib.dump(ensemble, 'models/artifacts/river_ensemble.pkl')
     
-
     print("\nTraining Engine Complete! All intelligent assets saved.")
